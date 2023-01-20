@@ -15,6 +15,9 @@ str_affiche_plateau_7_b:.asciz "                         9---10--11      12--13-
 str_affiche_plateau_9_b:.asciz "   |   |                         |   |   15--16--17  |   |\n"
 str_affiche_plateau_11_b:.asciz"   |                         |   18------19------20  |\n"
 str_affiche_plateau_13_b:.asciz "                         21----------22----------23\n"
+str_place_pion_1_a:.asciz "Tour du Joueur "
+str_place_pion_1_b:.asciz " :\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
+str_place_pion_2_a:.asciz "Placement invalide, Veuillez recommencer\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
 
 	#Definition des variables globales :
 
@@ -61,7 +64,7 @@ main :
 	jal fct_affiche_plateau
 	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
 
-
+	
 
 	j fct_fin_de_partie	#affiche les gagnants/perdants puis QUITTE le programme
 	#FIN MAIN
@@ -530,6 +533,15 @@ fct_affiche_plateau :
 	la a0,str_affiche_plateau_13_b
 	ecall
 
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw t0, 8(sp)		#EPI
+	lw t1, 12(sp)		#EPI
+	lw t2, 16(sp)		#EPI
+	lw t3, 20(sp)		#EPI
+	lw t4, 24(sp)		#EPI	
+	lw t5, 28(sp)		#EPI
+	addi sp, sp, 32		#EPI
 
 	jr ra			#EPI
 	#FIN
@@ -552,6 +564,91 @@ fct_capture :
 #retourne l'indice de la case jouée
 fct_place_pion :
 	#TO DO : écrire la fonction
+	addi sp, sp, -32	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	sw t0, 8(sp)		#PRO
+	sw t1, 12(sp)		#PRO
+	sw t2, 16(sp)		#PRO
+	sw t3, 20(sp)		#PRO
+	sw t4, 24(sp)		#PRO	
+	sw t5, 28(sp)		#PRO
+	addi fp, sp, 32		#PRO
+	
+	la a0, str_place_pion_1_a	#Tour du Joueur :
+	ori a7,zero,4   		#Print string
+	ecall
+
+	la t2, var_tour_j
+	lw t5,0(t2)			#t2 prend var_tour_j
+	
+	ori a7,zero,1   
+	or a0,zero,t5
+	ecall				#Print tour_j
+
+	la a0, str_place_pion_1_b	#Tour du Joueur :
+	ori a7,zero,4   		#Print string
+	ecall
+
+if_place_pion_1:
+	ori a7,zero,4   		#Read integer
+	ori a2,a0,0			#a2 = a0 (le return)
+	ecall
+
+	blt a0,zero,suite_if_place_pion_1  #input<0
+	ori t2,zero,23
+	blt t2,a0,suite_if_place_pion_1 #input>23
+
+	la t4, var_tab_plateau		#t4 = &plateau
+	lw t3,a0(t4)			#t3 = p[input].valeur
+	bne t3,zero,suite_if_place_pion_1  #p[input].valeur != 0
+
+	la a0, str_place_pion_2_a	#Placement invalide...
+	ori a7,zero,4   		#Print string
+	ecall
+	j if_place_pion_1
+suite_if_place_pion_1:
+
+	sw t5, a0(t4)			#p[input].valeur = tour_j
+	
+	ori t2,zero,1
+	bne t5,t2,suite_if_place_pion_2  #If tour_j = 1 :
+
+	la t4, var_J1_nbr_de_pions	#t4 = &J1_nbr_de_pions
+	lw t1,0(t4)			#t1 = J1_nbr_de_pions
+	addi t3,t1,1			#t3 = t1 + 1
+	sw t3,0(t4)			#J1_nbr_de_pions = t3
+
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	addi t2, a0, 4			#t2 = input + 4 
+	ori t1,zero,88			#t1 = 88
+	sw t3,0(t4)			#var_tab_plateau[input].symbole = t1
+suite_if_place_pion_2:
+
+	ori t2,zero,2
+	bne t5,t2,suite_if_place_pion_3
+
+	la t4, var_J2_nbr_de_pions	#t4 = &J2_nbr_de_pions
+	lw t1,0(t4)			#t1 = J2_nbr_de_pions
+	addi t3,t1,1			#t3 = t1 + 1
+	sw t3,0(t4)			#J2_nbr_de_pions = t3
+
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	addi t2, a0, 4			#t2 = input + 4 
+	ori t1,zero,79			#t1 = 79
+	sw t3,0(t4)			#var_tab_plateau[input].symbole = t1
+suite_if_place_pion_3:
+
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw t0, 8(sp)		#EPI
+	lw t1, 12(sp)		#EPI
+	lw t2, 16(sp)		#EPI
+	lw t3, 20(sp)		#EPI
+	lw t4, 24(sp)		#EPI	
+	lw t5, 28(sp)		#EPI
+	addi sp, sp, 32		#EPI
+
 	jr ra			#EPI
 	#FIN
 
