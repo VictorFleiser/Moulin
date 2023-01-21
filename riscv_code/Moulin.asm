@@ -74,16 +74,10 @@ main :
 
 	#Fonction : initialise les valeurs du tableau avec des cases vides
 fct_initialisation :
-	addi sp, sp, -32	#PRO
+	addi sp, sp, -8		#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
-	sw t0, 8(sp)		#PRO
-	sw t1, 12(sp)		#PRO
-	sw t2, 16(sp)		#PRO
-	sw t3, 20(sp)		#PRO
-	sw t4, 24(sp)		#PRO	
-	sw t5, 28(sp)		#PRO
-	addi fp, sp, 32		#PRO
+	addi fp, sp, 8		#PRO
 	
 	#boucle for (int i = 0; i < 24; i++)
 	add t0, zero, zero	# t0 = i = 0
@@ -273,13 +267,7 @@ suite_for_fct_initialisation :	#fin boucle for
 
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
-	lw t0, 8(sp)		#EPI
-	lw t1, 12(sp)		#EPI
-	lw t2, 16(sp)		#EPI
-	lw t3, 20(sp)		#EPI
-	lw t4, 24(sp)		#EPI	
-	lw t5, 28(sp)		#EPI
-	addi sp, sp, 32		#EPI
+	addi sp, sp, 8		#EPI
 	jr ra			#EPI
 	#FIN
 	
@@ -287,16 +275,10 @@ suite_for_fct_initialisation :	#fin boucle for
 # Fonction d'affichage du plateau
 fct_affiche_plateau : 
 	#TO DO : écrire la fonction
-	addi sp, sp, -32	#PRO
+	addi sp, sp, -8		#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
-	sw t0, 8(sp)		#PRO
-	sw t1, 12(sp)		#PRO
-	sw t2, 16(sp)		#PRO
-	sw t3, 20(sp)		#PRO
-	sw t4, 24(sp)		#PRO	
-	sw t5, 28(sp)		#PRO
-	addi fp, sp, 32		#PRO
+	addi fp, sp, 8		#PRO
 	
 	la t2, var_tab_plateau	# t2 = & plateau
 
@@ -535,13 +517,7 @@ fct_affiche_plateau :
 
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
-	lw t0, 8(sp)		#EPI
-	lw t1, 12(sp)		#EPI
-	lw t2, 16(sp)		#EPI
-	lw t3, 20(sp)		#EPI
-	lw t4, 24(sp)		#EPI	
-	lw t5, 28(sp)		#EPI
-	addi sp, sp, 32		#EPI
+	addi sp, sp, 8		#EPI
 
 	jr ra			#EPI
 	#FIN
@@ -564,16 +540,10 @@ fct_capture :
 #retourne l'indice de la case jouée
 fct_place_pion :
 	#TO DO : écrire la fonction
-	addi sp, sp, -32	#PRO
+	addi sp, sp, -8	#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
-	sw t0, 8(sp)		#PRO
-	sw t1, 12(sp)		#PRO
-	sw t2, 16(sp)		#PRO
-	sw t3, 20(sp)		#PRO
-	sw t4, 24(sp)		#PRO	
-	sw t5, 28(sp)		#PRO
-	addi fp, sp, 32		#PRO
+	addi fp, sp, 8		#PRO
 	
 	la a0, str_place_pion_1_a	#Tour du Joueur :
 	ori a7,zero,4   		#Print string
@@ -643,13 +613,7 @@ suite_if_place_pion_3:
 
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
-	lw t0, 8(sp)		#EPI
-	lw t1, 12(sp)		#EPI
-	lw t2, 16(sp)		#EPI
-	lw t3, 20(sp)		#EPI
-	lw t4, 24(sp)		#EPI	
-	lw t5, 28(sp)		#EPI
-	addi sp, sp, 32		#EPI
+	addi sp, sp, 8		#EPI
 
 	jr ra			#EPI
 	#FIN
