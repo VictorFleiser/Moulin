@@ -1,4 +1,11 @@
 	.data
+str_main_1_a:.asciz "Pas de coup possible pour le joueur "
+str_main_1_b:.asciz " !\n"
+str_main_newline:.asciz "\n"
+str_main_3_a:.asciz "\n\n\nTour numéro : "
+str_main_4_a:.asciz "\nnombre de pions de J1 = "
+str_main_5_a:.asciz "\nnombre de pions de J2 = "
+
 str_affiche_plateau_1_a:.asciz "-----------"
 str_affiche_plateau_1_b:.asciz "                         0-----------1-----------2\n"
 str_affiche_plateau_2_a:.asciz "|           |           |                         |           |           |\n"  #Identique à L12
@@ -15,6 +22,7 @@ str_affiche_plateau_7_b:.asciz "                         9---10--11      12--13-
 str_affiche_plateau_9_b:.asciz "   |   |                         |   |   15--16--17  |   |\n"
 str_affiche_plateau_11_b:.asciz"   |                         |   18------19------20  |\n"
 str_affiche_plateau_13_b:.asciz "                         21----------22----------23\n"
+
 str_place_pion_1_a:.asciz "Tour du Joueur "
 str_place_pion_1_b:.asciz " :\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
 str_place_pion_2_a:.asciz "Placement invalide, Veuillez recommencer\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
@@ -55,14 +63,11 @@ main :
 	addi fp, sp, 64
 
 	#appel fonction fct_initialisation	(argument est deja une var globale)
-#	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
 	jal fct_initialisation
-#	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
 
 	#appel fonction fct_affiche_plateau	(argument est deja une var globale)
-#	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
 	jal fct_affiche_plateau
-#	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
+
 
 		
 while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu se finisse (phase = 0)
@@ -79,10 +84,10 @@ while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu 
 		#code if :
 		#//placement du pion par l'utilisateur
 		#appel fonction fct_place_pion	(argument sont deja des var globales)
-		jal fct_place_pion
-#		ori a0, zero, 5				#TEMPORAIREMENT pour skip fct_place_pion
+#		jal fct_place_pion
+		ori a0, zero, 5				#TEMPORAIREMENT pour skip fct_place_pion
 				
-		#appel fonction fct_place_pion	(argument deja dans a0)
+		#appel fonction fct_test_moulin	(argument deja dans a0)
 		jal fct_test_moulin
 		or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
 		
@@ -105,14 +110,149 @@ while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu 
 		suite_if_fct_main_3 :
 		
 		j suite_if_fct_main_1
-	else_fct_main_1 :
+
+	else_fct_main_1 :	 #// phase de mouvement/sauts des pions
 	
-	
+		#//test si il ne reste que 3 pions au joueur actif :
+		if_fct_main_4 : #if ( (tour_j == 1 && J1_nbr_de_pions == 3) || (tour_j == 2 && J2_nbr_de_pions == 3) )
+		lw t0, var_tour_j
+		ori t1, zero, 1
+		ori t2, zero, 2
+		ori t3, zero, 3
+		lw t4, var_J1_nbr_de_pions
+		lw t5, var_J2_nbr_de_pions
+		
+		bne t0, t1, test_if_fct_main_4		#if (tour_j != 1), jump to test_if_fct_main_4
+			beq t4, t3, success_if_fct_main_4   # if (J1_nbr_de_pions == 3), jump to success_if_fct_main_4
+		test_if_fct_main_4:
+		bne t0, t2, else_fct_main_4		#if (tour_j != 2), jump to else_fct_main_4
+			beq t4, t3, success_if_fct_main_4   # if (J1_nbr_de_pions == 3), jump to success_if_fct_main_4
+		j else_fct_main_4
+
+		success_if_fct_main_4 :
+			#code if:
+			#//saut du pion par l'utilisateur
+			#appel fonction fct_saut_pion	(argument sont deja des var globales)
+			jal fct_saut_pion
+			or s1, zero, a0		#input = s1 = retour de la fonction saut_pion() ci dessus
+			j suite_if_fct_main_4
+		else_fct_main_4 :
+			#code else:
+			#//test si il n'existe pas de coup possible
+			#appel fonction fct_test_coup_possible	(argument sont deja des var globales)
+			jal fct_test_coup_possible
+			or t0, zero, a0		#t0 = retour de la fonction test_coup_possible() ci dessus
+			if_fct_main_5 :		#if (!(test_coup_possible(plateau, tour_j)))
+				bne t0, zero, suite_if_fct_main_5
+				#code if:
+				#printf("Pas de coup possible pour le joueur %d\n",tour_j);
+				
+				ori a7,zero,4   #Print string "Pas de coup possible pour le joueur "
+				la a0, str_main_1_a
+				ecall
+
+				ori a7,zero,11   #Print integer var_tour_j
+				lw a0, var_tour_j
+				ecall
+
+				ori a7,zero,4   #Print string " !\n"
+				la a0, str_main_1_b
+				ecall
+
+				j fct_fin_de_partie	#affiche les gagnants/perdants puis QUITTE le programme
+			
+			suite_if_fct_main_5 :
+			#appel fonction fct_deplace_pion (argument sont deja des var globales)
+			jal fct_deplace_pion
+			or s1, zero, a0		#input = s1 = retour de la fonction deplace_pion() ci dessus
+		
+		suite_if_fct_main_4 :
+		#//test si un moulin a été formé avec la case jouée
+		#appel fonction fct_test_moulin	(argument dans s1)
+		or a0, zero, s1	#OUV
+		jal fct_test_moulin
+		or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
+		
+		if_fct_main_6 :		#if(test_moulin(plateau, input))  <=> if (t0 != 0)
+			beq t0, zero, suite_if_fct_main_6
+			#code if :
+			#//capture d'une pièce adverse si un moulin est formé
+			#appel fonction fct_capture	(argument sont deja des var globales)
+			jal fct_capture
+		suite_if_fct_main_6 :
+		
+		#//Fin de partie lorseque un joueur a moins de 3 pions :
+		if_fct_main_7 :	#if (J1_nbr_de_pions < 3 || J2_nbr_de_pions < 3)
+		
+			lw t0, var_J1_nbr_de_pions
+			lw t1, var_J2_nbr_de_pions
+			ori t2, zero, 3
+		
+			blt t0, t2, test_success_if_fct_main_7		# if (J1_nbr_de_pions < 3), jump to test_success_if_fct_main_7
+			blt t1, t2, test_success_if_fct_main_7		# if (J2_nbr_de_pions < 3), jump to test_success_if_fct_main_7
+			j suite_if_fct_main_7
+		test_success_if_fct_main_7 :
+			#code if:
+			ori t0, zero, 0 	#phase = t0 = 0
+			sw t0, var_phase, t1
+		suite_if_fct_main_7 :
+
 	suite_if_fct_main_1 :
 	
+		ori a7,zero,4   #Print string "\n\n\nTour numéro : "
+		la a0, str_main_3_a
+		ecall
+
+		ori a7,zero,1   #Print integer var_tour
+		lw a0, var_tour
+		ecall
+
+		ori a7,zero,4   #Print string "\nnombre de pions de J1 = "
+		la a0, str_main_4_a
+		ecall
+
+		ori a7,zero,1   #Print integer var_J1_nbr_de_pions
+		lw a0, var_J1_nbr_de_pions
+		ecall
+
+		ori a7,zero,4   #Print string "\nnombre de pions de J2 = "
+		la a0, str_main_5_a
+		ecall
+
+		ori a7,zero,1   #Print integer var_J2_nbr_de_pions
+		lw a0, var_J2_nbr_de_pions
+		ecall
+
+		ori a7,zero,4   #Print string "\n"
+		la a0, str_main_newline
+		ecall
+		
+		#appel fonction fct_affiche_plateau	(argument est deja une var globale)
+		jal fct_affiche_plateau
+
+		ori a7,zero,4   #Print string "\n"
+		la a0, str_main_newline
+		ecall
+	
+		#//changement du tour
+		if_fct_main_8 :	#if (tour_j == 1)
+			lw t0, var_tour_j
+			ori t1, zero, 1
+			bne t0, t1, else_fct_main_8
+			#code if:
+			ori t0, zero, 2	#var_tour_j = 2
+			sw t0, var_tour_j, t2
+			j  suite_if_fct_main_8
+		else_fct_main_8 :
+			#code else:
+			ori t0, zero, 1	#var_tour_j = 1
+			sw t0, var_tour_j, t2
+		suite_if_fct_main_8 :
 	
 	j while_fct_main
+
 suite_while_fct_main :
+
 	j fct_fin_de_partie	#affiche les gagnants/perdants puis QUITTE le programme
 	#FIN MAIN
 
@@ -670,6 +810,7 @@ suite_if_place_pion_3:
 #retourne l'indice de la case de destination
 fct_deplace_pion :
 	#TO DO : écrire la fonction
+	ori a0, zero, 1					#renvoie 1 pour le moment
 	jr ra			#EPI
 	#FIN
 
@@ -677,12 +818,14 @@ fct_deplace_pion :
 #retourne l'indice de la case de destination
 fct_saut_pion :
 	#TO DO : écrire la fonction
+	ori a0, zero, 1					#renvoie 1 pour le moment
 	jr ra			#EPI
 	#FIN
 	
 #teste si un coup est possible pour le joueur actif (renvoie 1 si oui, 0 sinon)
 fct_test_coup_possible :
 	#TO DO : écrire la fonction
+	ori a0, zero, 1					#renvoie 1 pour le moment
 	jr ra			#EPI
 	#FIN
 	
