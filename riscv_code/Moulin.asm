@@ -600,7 +600,8 @@ if_place_pion_1:
 	blt t2,a0,suite_if_place_pion_1 #input>23
 
 	la t4, var_tab_plateau		#t4 = &plateau
-	lw t3,a0(t4)			#t3 = p[input].valeur
+	add t1, a0, t4							#J'ai ajouté sa
+	lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
 	bne t3,zero,suite_if_place_pion_1  #p[input].valeur != 0
 
 	la a0, str_place_pion_2_a	#Placement invalide...
@@ -609,7 +610,8 @@ if_place_pion_1:
 	j if_place_pion_1
 suite_if_place_pion_1:
 
-	sw t5, a0(t4)			#p[input].valeur = tour_j
+	add t6, a0, t4							#J'ai ajouté sa
+	sw t5, 0(t6)			#p[input].valeur = tour_j	#Et modifié sa pour que sa compile, non testé
 	
 	ori t2,zero,1
 	bne t5,t2,suite_if_place_pion_2  #If tour_j = 1 :
