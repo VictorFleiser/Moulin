@@ -55,17 +55,64 @@ main :
 	addi fp, sp, 64
 
 	#appel fonction fct_initialisation	(argument est deja une var globale)
-	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
+#	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
 	jal fct_initialisation
-	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
+#	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
 
 	#appel fonction fct_affiche_plateau	(argument est deja une var globale)
-	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
+#	sw a0, 0(sp)	#OUV	#sauvegarde de a0	inutile car retourne void?
 	jal fct_affiche_plateau
-	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
+#	lw a0, 0(sp)	#FIN	#Restitution de a0	inutile car retourne void?
 
+		
+while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu se finisse (phase = 0)
+	lw t0, var_phase	#t0 = phase
+	beq t0, zero, suite_while_fct_main
+	#code While :
+	lw t1, var_tour		#t1 = tour
+	addi t1, t1, 1		#tour++
+	sw t1, var_tour, t2
 	
-
+	if_fct_main_1 :		#if (phase == 1)		// phase de pose des pions
+		ori t3, zero, 1
+		bne t0, t3, else_fct_main_1
+		#code if :
+		#//placement du pion par l'utilisateur
+		#appel fonction fct_place_pion	(argument sont deja des var globales)
+		jal fct_place_pion
+#		ori a0, zero, 5				#TEMPORAIREMENT pour skip fct_place_pion
+				
+		#appel fonction fct_place_pion	(argument deja dans a0)
+		jal fct_test_moulin
+		or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
+		
+		if_fct_main_2 :		#if(test_moulin(plateau, input))  <=> if (t0 != 0)
+			beq t0, zero, suite_if_fct_main_2
+			#code if :
+			#//capture d'une pièce adverse si un moulin est formé
+			#appel fonction fct_capture	(argument sont deja des var globales)
+			jal fct_capture
+		suite_if_fct_main_2 :
+		
+		#//Passage en phase 2 après le tour 18 :
+		if_fct_main_3 :	#if (tour == 18)
+			lw t0, var_tour
+			ori t1, zero, 18
+			bne t0, t1, suite_if_fct_main_3
+			#code if:
+			ori t2, zero, 2 	#phase = t2 = 2
+			sw t2, var_phase, t3
+		suite_if_fct_main_3 :
+		
+		j suite_if_fct_main_1
+	else_fct_main_1 :
+	
+	
+	suite_if_fct_main_1 :
+	
+	
+	j while_fct_main
+suite_while_fct_main :
 	j fct_fin_de_partie	#affiche les gagnants/perdants puis QUITTE le programme
 	#FIN MAIN
 
@@ -527,6 +574,7 @@ fct_affiche_plateau :
 #retourne 1 si la case fait partie d'un moulin et 0 sinon
 fct_test_moulin : 
 	#TO DO : écrire la fonction
+	ori a0, zero, 1					#renvoie 1 pour le moment
 	jr ra			#EPI
 	#FIN
 	
