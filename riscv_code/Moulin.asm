@@ -714,7 +714,177 @@ fct_affiche_plateau :
 #retourne 1 si la case fait partie d'un moulin et 0 sinon
 fct_test_moulin : 
 	#TO DO : écrire la fonction
-	ori a0, zero, 1					#renvoie 1 pour le moment
+	addi sp, sp, -48	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	sw s1, 8(sp)		#PRO
+	sw s2, 12(sp)		#PRO
+	sw s3, 16(sp)		#PRO
+	sw s4, 20(sp)		#PRO
+	sw s5, 24(sp)		#PRO
+	sw s6, 28(sp)		#PRO
+	sw s8, 32(sp)		#PRO
+	sw s9, 36(sp)		#PRO
+	sw s10, 40(sp)		#PRO
+	sw s11, 44(sp)		#PRO
+	addi fp, sp, 48		#PRO
+
+	
+	#//Registres stockant les Statuts des voisins, le statut correspond à un 1 si le voisin en question appartient aussi au joueur actif
+	ori s8, zero, 0		#s8 = voisin Nord status
+	ori s9, zero, 0		#s9 = voisin Est status
+	ori s10, zero, 0	#s10 = voisin Sud status
+	ori s11, zero, 0	#s11 = voisin Ouest status
+
+	#enregistrement dans des registres des valeurs/adresses utilisées plusieurs fois ci dessous
+	or s1, zero, a0		#s1 = num_case = argument fonction
+	la s2, var_tab_plateau	#s2 = &plateau
+	ori s3, zero, 24	#s3 = 24
+	mul s4, s1, s3		#s4 = num_case * 24
+	add s4, s4, s2		#s4 = &p[num_case]
+	lw s5, 0(s4)		#s5 = p[num_case].valeur
+	ori s6, zero, -1	#s6 = -1
+
+	#//test vers le nord	
+	if_fct_test_moulin_1 : 	#if (p[num_case].vn != -1)	//test si il existe une case au nord
+		lw t1,8(s4)		#t1 = p[num_case].vn
+		beq t1, s6, suite_if_fct_test_moulin_1
+		#code if:
+		if_fct_test_moulin_2 :	#if (p[p[num_case].vn].valeur == p[num_case].valeur)	//test si la valeur de la case nord est identique
+			mul t2, t1, s3		#t2 = p[num_case].vn * 24
+			add t2, t2, s2		#t2 = &p[p[num_case].vn]
+			lw t3, 0(t2)		#t3 = p[p[num_case].vn].valeur
+			bne t3, s5, suite_if_fct_test_moulin_2
+			#code if:
+			ori s8, zero, 1		#//case voisine nord appartient aussi au joueur
+			if_fct_test_moulin_3 :	#if (p[p[num_case].vn].vn != -1)	//test si il existe une case au double nord
+				lw t3, 8(t2)		#t3 = p[p[num_case].vn].vn
+				beq t3, s6, suite_if_fct_test_moulin_3
+				#code if:
+				if_fct_test_moulin_4 :	#if (p[p[p[num_case].vn].vn].valeur == p[num_case].valeur)	//test si la valeur de la case double nord est identique
+					mul t4, t3, s3		#t4 = p[p[num_case].vn].vn * 24
+					add t4, t4, s2		#t4 = &p[p[p[num_case].vn].vn]
+					lw t5, 0(t4)		#t5 = p[p[p[num_case].vn].vn].valeur
+					bne t5, s5, suite_if_fct_test_moulin_4
+					#code if:
+					j return_success_fct_test_moulin	#return 1
+				suite_if_fct_test_moulin_4 :
+			suite_if_fct_test_moulin_3 :
+		suite_if_fct_test_moulin_2 :
+	suite_if_fct_test_moulin_1 :
+	
+	#//test vers l'Est
+	if_fct_test_moulin_5 : 	#if (p[num_case].ve != -1)	//test si il existe une case à l'Est
+		lw t1,12(s4)		#t1 = p[num_case].ve
+		beq t1, s6, suite_if_fct_test_moulin_5
+		#code if:
+		if_fct_test_moulin_6 :	#if (p[p[num_case].ve].valeur == p[num_case].valeur)	//test si la valeur de la case Est est identique
+			mul t2, t1, s3		#t2 = p[num_case].ve * 24
+			add t2, t2, s2		#t2 = &p[p[num_case].ve]
+			lw t3, 0(t2)		#t3 = p[p[num_case].ve].valeur
+			bne t3, s5, suite_if_fct_test_moulin_6
+			#code if:
+			ori s9, zero, 1		#//case voisine Est appartient aussi au joueur
+			if_fct_test_moulin_7 :	#if (p[p[num_case].ve].ve != -1)	//test si il existe une case au double Est
+				lw t3, 12(t2)		#t3 = p[p[num_case].ve].ve
+				beq t3, s6, suite_if_fct_test_moulin_7
+				#code if:
+				if_fct_test_moulin_8 :	#if (p[p[p[num_case].ve].ve].valeur == p[num_case].valeur)	//test si la valeur de la case double Est est identique
+					mul t4, t3, s3		#t4 = p[p[num_case].ve].ve * 24
+					add t4, t4, s2		#t4 = &p[p[p[num_case].ve].ve]
+					lw t5, 0(t4)		#t5 = p[p[p[num_case].ve].ve].valeur
+					bne t5, s5, suite_if_fct_test_moulin_8
+					#code if:
+					j return_success_fct_test_moulin	#return 1
+				suite_if_fct_test_moulin_8 :
+			suite_if_fct_test_moulin_7 :
+		suite_if_fct_test_moulin_6 :
+	suite_if_fct_test_moulin_5 :
+	
+	#//test vers le Sud
+	if_fct_test_moulin_9 : 	#if (p[num_case].vs != -1)	//test si il existe une case au sud
+		lw t1,16(s4)		#t1 = p[num_case].vs
+		beq t1, s6, suite_if_fct_test_moulin_9
+		#code if:
+		if_fct_test_moulin_10 :	#if (p[p[num_case].vs].valeur == p[num_case].valeur)	//test si la valeur de la case Sud est identique
+			mul t2, t1, s3		#t2 = p[num_case].vs * 24
+			add t2, t2, s2		#t2 = &p[p[num_case].vs]
+			lw t3, 0(t2)		#t3 = p[p[num_case].vs].valeur
+			bne t3, s5, suite_if_fct_test_moulin_10
+			#code if:
+			ori s10, zero, 1	#//case voisine Sud appartient aussi au joueur
+			if_fct_test_moulin_11 :	#if (p[p[num_case].vs].vs != -1)	//test si il existe une case au double Sud
+				lw t3, 16(t2)		#t3 = p[p[num_case].vs].vs
+				beq t3, s6, suite_if_fct_test_moulin_11
+				#code if:
+				if_fct_test_moulin_12 :	#if (p[p[p[num_case].vs].vs].valeur == p[num_case].valeur)	//test si la valeur de la case double Sud est identique
+					mul t4, t3, s3		#t4 = p[p[num_case].vs].vs * 24
+					add t4, t4, s2		#t4 = &p[p[p[num_case].vs].vs]
+					lw t5, 0(t4)		#t5 = p[p[p[num_case].vs].vs].valeur
+					bne t5, s5, suite_if_fct_test_moulin_12
+					#code if:
+					j return_success_fct_test_moulin	#return 1
+				suite_if_fct_test_moulin_12 :
+			suite_if_fct_test_moulin_11 :
+		suite_if_fct_test_moulin_10 :
+	suite_if_fct_test_moulin_9 :
+	
+	#//test vers l'Ouest
+	if_fct_test_moulin_13 : 	#if (p[num_case].vo != -1)	//test si il existe une case à l'Ouest
+		lw t1,20(s4)		#t1 = p[num_case].vo
+		beq t1, s6, suite_if_fct_test_moulin_13
+		#code if:
+		if_fct_test_moulin_14 :	#if (p[p[num_case].vo].valeur == p[num_case].valeur)	//test si la valeur de la case Ouest est identique
+			mul t2, t1, s3		#t2 = p[num_case].vo * 24
+			add t2, t2, s2		#t2 = &p[p[num_case].vo]
+			lw t3, 0(t2)		#t3 = p[p[num_case].vo].valeur
+			bne t3, s5, suite_if_fct_test_moulin_14
+			#code if:
+			ori s11, zero, 1		#//case voisine Ouest appartient aussi au joueur
+			if_fct_test_moulin_15 :	#if (p[p[num_case].vo].vo != -1)	//test si il existe une case au double Ouest
+				lw t3, 20(t2)		#t3 = p[p[num_case].vo].vo
+				beq t3, s6, suite_if_fct_test_moulin_15
+				#code if:
+				if_fct_test_moulin_16 :	#if (p[p[p[num_case].vo].vo].valeur == p[num_case].valeur)	//test si la valeur de la case double Ouest est identique
+					mul t4, t3, s3		#t4 = p[p[num_case].vo].vo * 24
+					add t4, t4, s2		#t4 = &p[p[p[num_case].vo].vo]
+					lw t5, 0(t4)		#t5 = p[p[p[num_case].vo].vo].valeur
+					bne t5, s5, suite_if_fct_test_moulin_16
+					#code if:
+					j return_success_fct_test_moulin	#return 1
+				suite_if_fct_test_moulin_16 :
+			suite_if_fct_test_moulin_15 :
+		suite_if_fct_test_moulin_14 :
+	suite_if_fct_test_moulin_13 :
+	
+	#//test si la case est au milieu d'un moulin
+	if_fct_test_moulin_17 : #if ((voisin Nord status && voisin Sud status) || (voisin Est status && voisin Ouest status))
+		and t0, s8, s10		#t0 = (voisin Nord status && voisin Sud status)
+		and t1, s9, s11		#t1 = (voisin Est status && voisin Ouest status)
+		or t2, t0, t1		#t2 = ((voisin Nord status && voisin Sud status) || (voisin Est status && voisin Ouest status))
+		bne t2, zero, return_success_fct_test_moulin
+
+	ori a0, zero, 0				#return 0
+	j exit_fct_test_moulin
+	
+	return_success_fct_test_moulin : 	#return 1
+	ori a0, zero, 1
+	
+	exit_fct_test_moulin :
+
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw s1, 8(sp)		#EPI
+	lw s2, 12(sp)		#EPI
+	lw s3, 16(sp)		#EPI
+	lw s4, 20(sp)		#EPI
+	lw s5, 24(sp)		#EPI
+	lw s6, 28(sp)		#EPI
+	lw s8, 32(sp)		#EPI
+	lw s9, 36(sp)		#EPI
+	lw s10, 40(sp)		#EPI
+	lw s11, 44(sp)		#EPI
+	addi sp, sp, 48		#EPI
 	jr ra			#EPI
 	#FIN
 	
