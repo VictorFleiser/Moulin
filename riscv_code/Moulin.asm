@@ -6,6 +6,10 @@ str_main_3_a:.asciz "\n\n\nTour numéro : "
 str_main_4_a:.asciz "\nnombre de pions de J1 = "
 str_main_5_a:.asciz "\nnombre de pions de J2 = "
 
+str_fct_capture_1_a:.asciz "Vous avez réalisé un moulin !\nToutes les pions adverses font partie d'un moulin, vous pouvez donc choisir n'importe quel pion adverse à capturer.\n"
+str_fct_capture_2_a:.asciz "Vous avez réalisé un moulin !\nEntrez le numéro d'une case contenant un pion adverse que vous voulez capturer (ce pion ne peut pas faire partie d'un moulin)\n\n"
+str_fct_capture_3_a:.asciz "Case entrée invalide, Veuillez recommencer\n"
+
 str_affiche_plateau_1_a:.asciz "-----------"
 str_affiche_plateau_1_b:.asciz "                         0-----------1-----------2\n"
 str_affiche_plateau_2_a:.asciz "|           |           |                         |           |           |\n"  #Identique à L12
@@ -84,7 +88,7 @@ while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu 
 		#code if :
 		#//placement du pion par l'utilisateur
 		#appel fonction fct_place_pion	(argument sont deja des var globales)
-#		jal fct_place_pion
+		jal fct_place_pion
 		ori a0, zero, 5				#TEMPORAIREMENT pour skip fct_place_pion
 				
 		#appel fonction fct_test_moulin	(argument deja dans a0)
@@ -891,6 +895,130 @@ fct_test_moulin :
 #teste si une capture est possible, si oui demande à l'utilisateur la case à capturer et effectue la capture
 fct_capture : 
 	#TO DO : écrire la fonction
+	addi sp, sp, -32	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	sw s1, 8(sp)		#PRO
+	sw s2, 12(sp)		#PRO
+	sw s3, 16(sp)		#PRO
+	sw s4, 20(sp)		#PRO
+	sw s5, 24(sp)		#PRO
+	sw s6, 28(sp)		#PRO
+	addi fp, sp, 32		#PRO
+
+	la s1, var_tab_plateau	#s1 = &plateau
+	lw s2, var_tour_j	#s2 = var_tour_j
+
+
+	#//test si il existe une case adverse ne fesant pas partie d'un moulin :
+
+	ori s3, zero, 1		#s3 = int tous_moulins = 1;
+
+	#//itération sur toutes les cases du tableau
+	addi s4, zero, 0	#s4 = int i = 0
+	ori s5, zero, 24	#s5 = 24
+	for_fct_capture : 	#for (int i = 0; i < 24; i=i++)
+		bge s4, s5, suite_for_fct_capture
+		#code for:
+		#//test si la case appartient à l'adversaire
+		if_fct_capture_1 :	#if (p[i].valeur != tour_j && p[i].valeur != 0)
+			mul t3, s4, s5		#t3 = i*24
+			add t3, t3, s1		#t3 = &p[i]
+			lw t4, 0(t3)		#t4 = p[i].valeur
+			beq t4, s2, suite_if_fct_capture_1
+			beq t4, zero, suite_if_fct_capture_1
+			#code if:
+			if_fct_capture_2 :	#//test si la case adverse ne fait pas partie d'un moulin
+				#appel fonction fct_test_moulin	(argument dans t1)
+				or a0, zero, s4		#OUV	#Argument
+				jal fct_test_moulin
+				or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
+				bne t0, zero, suite_if_fct_capture_2
+				#code if :
+				ori s3, zero, 0		#s3 = tous_moulins = 0;
+			suite_if_fct_capture_2 :
+		suite_if_fct_capture_1 :
+		#fin code for:
+		addi s4, s4, 1
+		j for_fct_capture
+	suite_for_fct_capture :
+
+	if_fct_capture_3 : #if (tous_moulins)		//toutes les cases adverses font partie d'un moulin
+		beq s3, zero, else_fct_capture_3
+		#code if:
+		ori a7,zero,4   #Print string	"Vous avez réalisé un moulin !\nToutes les pions adverses font partie d'un moulin, vous pouvez donc choisir n'importe quel pion adverse à capturer.\n"
+		la a0, str_fct_capture_1_a
+		ecall
+		j suite_if_fct_capture_3
+	else_fct_capture_3:			#//il y a au moins une case adverse ne fesant pas partie d'un moulin
+		ori a7,zero,4   #Print string	"Vous avez réalisé un moulin !\nEntrez le numéro d'une case contenant un pion adverse que vous voulez capturer (ce pion ne peut pas faire partie d'un moulin)\n\n"
+		la a0, str_fct_capture_2_a
+		ecall
+	suite_if_fct_capture_3 :
+		
+	#Capture :
+	capture_fct_capture:
+	ori a7,zero,5	#scanf("%d");
+	ecall
+	or s6, zero, a0	#s6 = input
+	#//test si le placement est invalide
+	if_fct_capture_4 : #if ( (input < 0) || (input > 23) || (p[input].valeur == tour_j) || (p[input].valeur == 0) || ((test_moulin(p, input)) && !(tous_moulins)) )	//error bc out of range
+		blt s6, zero, if_success_fct_capture_4	#test (input < 0)
+		ori t0, zero, 24
+		bge s6, t0, if_success_fct_capture_4	#test (input > 23)
+		mul t0, s6, s5		#t0 = input*24
+		add t0, t0, s1		#t0 = &p[input]
+		lw t1, 0(t0)		#t1 = p[input].valeur
+		beq t1, s2, if_success_fct_capture_4	#test (p[input].valeur == tour_j)
+		beq t1, zero, if_success_fct_capture_4	#test (p[input].valeur == 0)
+
+		#appel fonction fct_test_moulin	(argument déjà dans a0)
+		jal fct_test_moulin
+		or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
+		beq t0, zero, suite_if_fct_capture_4	#test (test_moulin() == 0) -> jump to suite_if
+		beq s3, zero, if_success_fct_capture_4	#test (tous_moulins == 0) -> jump to sucess_if
+		#si on est arrivé ici, toutes les conditions testées étaient fausses -> jump to suite_if
+		j suite_if_fct_capture_4
+	if_success_fct_capture_4 :
+		#code if:
+		ori a7,zero,4   #Print string	"Case entrée invalide, Veuillez recommencer\n"
+		la a0, str_fct_capture_3_a
+		ecall
+		j capture_fct_capture	#on redemande à l'utilisateur d'entrer un nombre
+	suite_if_fct_capture_4 :
+
+
+	#//Capture du pion :
+	mul t0, s6, s5		#t0 = input*24
+	add t0, t0, s1		#t0 = &p[input]
+	sw zero, 0(t0)		#p[input].valeur = 0;
+	ori t1, zero, 35	#t1 = 35 = symbole '#'
+	sb t1, 4(t0)		#p[input].symbole = 35
+
+	#//reduction du nombre de pions du joueur adverse:
+	if_fct_capture_5 :	#if (tour_j == 1)
+		ori t0, zero, 1
+		bne s2, t0, else_fct_capture_5
+		#code if:
+		lw t1, var_J2_nbr_de_pions
+		sub t1, t1, t0	#var_J2_nbr_de_pions--	
+		sw t1, var_J2_nbr_de_pions, t6
+		j suite_if_fct_capture_5
+	else_fct_capture_5 :
+		lw t1, var_J1_nbr_de_pions
+		sub t1, t1, t0	#var_J1_nbr_de_pions--	
+		sw t1, var_J1_nbr_de_pions, t6
+	suite_if_fct_capture_5 :
+
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw s1, 8(sp)		#EPI
+	lw s2, 12(sp)		#EPI
+	lw s3, 16(sp)		#EPI
+	lw s4, 20(sp)		#EPI
+	lw s5, 24(sp)		#EPI
+	lw s6, 28(sp)		#EPI
+	addi sp, sp, 32		#EPI
 	jr ra			#EPI
 	#FIN
 
@@ -1021,19 +1149,20 @@ fct_test_coup_possible :
 		#code for:
 
 		#//test si la case appartient au joueur
-		if_fct_test_coup_possible :	#if (p[i].valeur == tour_j)
+		if_fct_test_coup_possible_1 :	#if (p[i].valeur == tour_j)
 			add t0, s1, s3		#t0 = &p[i/24]
 			lw t1, 0(t0)		#t1 = p[i/24].valeur
-			bne t1, s5, suite_if_fct_test_coup_possible
+			bne t1, s5, suite_if_fct_test_coup_possible_1
+			#code if:
+			#//test si la case à au moins un voisin vide
+			if_fct_test_coup_possible_2 :	#if ( (p[i].vn != -1 && p[p[i].vn].valeur == 0) || (p[i].ve != -1 && p[p[i].ve].valeur == 0) || (p[i].vs != -1 && p[p[i].vs].valeur == 0) || (p[i].vo != -1 && p[p[i].vo].valeur == 0) )
+				lw t2, 8(t0)	#t2 = p[i/24].vn
+
+			#NON FINI
 
 
-	#NON FINI
 
-
-
-
-
-		suite_if_fct_test_coup_possible :
+		suite_if_fct_test_coup_possible_1 :
 		#fin code for:
 		addi s3, s3, 24
 		j for_fct_test_coup_possible
