@@ -995,7 +995,58 @@ fct_saut_pion :
 #teste si un coup est possible pour le joueur actif (renvoie 1 si oui, 0 sinon)
 fct_test_coup_possible :
 	#TO DO : écrire la fonction
-	ori a0, zero, 1					#renvoie 1 pour le moment
+	ori a0, zero, 1		#TEMPORAIREMENT			#renvoie 1 pour le moment
+	jr ra			#TEMPORAIREMENT
+	
+	addi sp, sp, -28	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	sw s1, 8(sp)		#PRO
+	sw s2, 12(sp)		#PRO
+	sw s3, 16(sp)		#PRO
+	sw s4, 20(sp)		#PRO
+	sw s5, 24(sp)		#PRO
+	addi fp, sp, 28		#PRO
+
+
+	la s1, var_tab_plateau	#s1 = &plateau
+	ori s2, zero, 24	#s2 = 24
+	lw s5, var_tour_j	#s5 = var_tour_j
+
+	#//itération sur toutes les cases du tableau
+	addi s3, zero, 0	#s3 = int i = 0
+	ori s4, zero, 576	#s4 = 24*24 = 576
+	for_fct_test_coup_possible :		#for (int i = 0; i < 576; i=i+24)	#itère sur les adresses des cases du tableau
+		bge s3, s4, suite_for_fct_test_coup_possible
+		#code for:
+
+		#//test si la case appartient au joueur
+		if_fct_test_coup_possible :	#if (p[i].valeur == tour_j)
+			add t0, s1, s3		#t0 = &p[i/24]
+			lw t1, 0(t0)		#t1 = p[i/24].valeur
+			bne t1, s5, suite_if_fct_test_coup_possible
+
+
+	#NON FINI
+
+
+
+
+
+		suite_if_fct_test_coup_possible :
+		#fin code for:
+		addi s3, s3, 24
+		j for_fct_test_coup_possible
+	suite_for_fct_test_coup_possible:
+
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw s1, 8(sp)		#EPI
+	lw s2, 12(sp)		#EPI
+	lw s3, 16(sp)		#EPI
+	lw s4, 20(sp)		#EPI
+	lw s5, 24(sp)		#EPI
+	addi sp, sp, 28		#EPI
 	jr ra			#EPI
 	#FIN
 	
