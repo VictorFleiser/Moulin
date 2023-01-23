@@ -1,4 +1,11 @@
 	.data
+	# definition des chaines de characteres :
+
+str_fin_de_partie_1_a : .asciz "Le joueur "
+str_fin_de_partie_1_b : .asciz " a perdu !\n"
+str_fin_de_partie_2_a : .asciz "bravo au joueur "
+str_fin_de_partie_2_b : .asciz " !\n"
+	
 str_main_1_a:.asciz "Pas de coup possible pour le joueur "
 str_main_1_b:.asciz " !\n"
 str_main_newline:.asciz "\n"
@@ -63,14 +70,7 @@ var_tour : .word 0
 var_tab_plateau : .space 576	#24 t_cases * 24 octets
 
 
-	# definition des chaines de characteres :
-	
-	
-	#strings utilisées dans la fonction fin_de_partie
-str_fin_de_partie_1_a : .asciz "Le joueur "
-str_fin_de_partie_1_b : .asciz " a perdu !\n"
-str_fin_de_partie_2_a : .asciz "bravo au joueur "
-str_fin_de_partie_2_b : .asciz " !\n"
+
 
 
 	.text
@@ -464,10 +464,7 @@ suite_for_fct_initialisation :	#fin boucle for
         sw t1,560(t0)           #p[23].vn = 14;         23*24 + 2*4 
         li t1,22 
         sw t1,572(t0)           #p[23].vo = 22;         23*24 + 5*4 
-        li t1,666 
-        sw t1,572(t0)           #p[23].vo = 666;         23*24 + 5*4 
-        li t1,666 
-        sw t1,572(t0)           #p[23].vo = 666;         23*24 + 5*4
+
 
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
@@ -1127,7 +1124,6 @@ fct_place_pion :
 #retourne l'indice de la case de destination
 fct_deplace_pion :
 
-	ori a0, zero, 1					#renvoie 1 pour le moment
 	addi sp, sp, -8	#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
@@ -1154,16 +1150,16 @@ fct_deplace_pion :
 		ori s3,a0,0			#
 
 		ori t2,zero,0
-		blt a2,t2,else_deplace_pion_1 #Jump if input<0 :
+		blt s3,t2,else_deplace_pion_1 #Jump if input<0 :
 		ori t2,zero,23
-		blt t2,a2,else_deplace_pion_1 #Jump if 23<input :
+		blt t2,s3,else_deplace_pion_1 #Jump if 23<input :
 	
 		la t4, var_tab_plateau		#t4 = &plateau
 		ori t3, zero, 24
-		mul t1,a2,t3
+		mul t1,s3,t3
 		add t1,t1,t4
 		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
-		bne t3,zero,else_deplace_pion_1 #Jump if p[input].valeur == 0
+		beq t3,zero,else_deplace_pion_1 #Jump if p[input].valeur == 0
 	
 		j fin_if_deplace_pion_1
 		else_deplace_pion_1:
@@ -1173,31 +1169,31 @@ fct_deplace_pion :
 			j if_deplace_pion_1
 	fin_if_deplace_pion_1 :
 	
-	la a0, str_deplace_pion_2_a	#Entrez le numéro de la case VIDE VOISINE...
+	la a0, str_deplace_pion_3_a	#Entrez le numéro de la case VIDE VOISINE...
 	ori a7,zero,4   		#Print string
 	ecall
 	
 	ori a7,zero,5   		#Read integer destination
-	or t5,zero,a0
 	ecall	
+	or t5,zero,a0
 	
 	if_deplace_pion_2 :
 		ori t3,zero,24
 		mul t3,s3,t3		#t3 = depart*24
 		add t0,t4,t3		#t0 = &p[depart]
 		lw t2, 8(t0)		#t2 = p[depart].vn
-		beq t2,t5,success_deplace_pion_2 #p[depart].vn != destination
+		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vn == destination
 		lw t2, 12(t0)		#t2 = p[depart].ve
-		beq t2,t5,success_deplace_pion_2 #p[depart].ve != destination
+		beq t2,t5,fin_if_deplace_pion_2 #p[depart].ve == destination
 		lw t2, 16(t0)		#t2 = p[depart].vs
-		beq t2,t5,success_deplace_pion_2 #p[depart].vs != destination
+		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vs == destination
 		lw t2, 20(t0)		#t2 = p[depart].vo
-		beq t2,t5,success_deplace_pion_2 #p[depart].vo != destination
+		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vo != destination
 		
-		j fin_if_deplace_pion_2
+		j success_deplace_pion_2
 	
 	success_deplace_pion_2 :
-		la a0, str_deplace_pion_3_a	#Déplacement invalide, cette case...
+		la a0, str_deplace_pion_4_a	#Déplacement invalide, cette case...
 		ori a7,zero,4   		#Print string
 		ecall
 		
@@ -1209,7 +1205,7 @@ fct_deplace_pion :
 		mul t3,t5,t3		#t3 = destination*24
 		add t0,t4,t3		#t0 = &p[destination]
 		lw t2,0(t0)
-		beq t2,zero,success_deplace_pion_3
+		bne t2,zero,success_deplace_pion_3
 		j fin_if_deplace_pion_3
 	success_deplace_pion_3 :
 		la a0, str_deplace_pion_4_a	#Déplacement invalide, cette case...
@@ -1246,7 +1242,8 @@ fct_deplace_pion :
 		ori t4,zero,24
 		mul t1,t4,t5			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
-		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
+		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,88			#t3 = 88
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 88
 	else_deplace_pion_4 :	
@@ -1255,7 +1252,8 @@ fct_deplace_pion :
 		ori t4,zero,24
 		mul t1,t4,t5			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
-		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
+		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,79			#t3 = 79
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
 	fin_if_deplace_pion_4 :
