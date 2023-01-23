@@ -1176,20 +1176,20 @@ fct_deplace_pion :
 	
 	ori a7,zero,5   		#Read integer destination
 	ecall	
-	or t5,zero,a0
+	or t6,zero,a0
 	
 	if_deplace_pion_2 :
 		ori t3,zero,24
 		mul t3,s3,t3		#t3 = depart*24
 		add t0,t4,t3		#t0 = &p[depart]
 		lw t2, 8(t0)		#t2 = p[depart].vn
-		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vn == destination
+		beq t2,t6,fin_if_deplace_pion_2 #p[depart].vn == destination
 		lw t2, 12(t0)		#t2 = p[depart].ve
-		beq t2,t5,fin_if_deplace_pion_2 #p[depart].ve == destination
+		beq t2,t6,fin_if_deplace_pion_2 #p[depart].ve == destination
 		lw t2, 16(t0)		#t2 = p[depart].vs
-		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vs == destination
+		beq t2,t6,fin_if_deplace_pion_2 #p[depart].vs == destination
 		lw t2, 20(t0)		#t2 = p[depart].vo
-		beq t2,t5,fin_if_deplace_pion_2 #p[depart].vo != destination
+		beq t2,t6,fin_if_deplace_pion_2 #p[depart].vo != destination
 		
 		j success_deplace_pion_2
 	
@@ -1203,7 +1203,7 @@ fct_deplace_pion :
 	
 	if_deplace_pion_3 :
 		ori t3,zero,24
-		mul t3,t5,t3		#t3 = destination*24
+		mul t3,t6,t3		#t3 = destination*24
 		add t0,t4,t3		#t0 = &p[destination]
 		lw t2,0(t0)
 		bne t2,zero,success_deplace_pion_3
@@ -1231,7 +1231,7 @@ fct_deplace_pion :
 	sw t3,0(t1)			#var_tab_plateau[depart].symoble = 35 
 	
 	ori t4,zero,24
-	mul t1,t4,t5			#t1 = 24*destination
+	mul t1,t4,t6			#t1 = 24*destination
 	la t4, var_tab_plateau		#t4 = &var_tab_plateau
 	add t1, t4, t1			#t1 = &var_tab_plateau[destination].valeur
 	sw t2,0(t1)			#var_tab_plateau[destination].valeur = var_tour_j
@@ -1241,7 +1241,7 @@ fct_deplace_pion :
 		ori t4,zero,1
 		bne t2,t4,else_deplace_pion_4	#If tour_j = 1 :
 		ori t4,zero,24
-		mul t1,t4,t5			#t1 = 24*destination
+		mul t1,t4,t6			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
 		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
 		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
@@ -1251,14 +1251,14 @@ fct_deplace_pion :
 		ori t4,zero,2
 		bne t2,t4,fin_if_deplace_pion_4	#If tour_j = 2 :
 		ori t4,zero,24
-		mul t1,t4,t5			#t1 = 24*destination
+		mul t1,t4,t6			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
 		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
 		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,79			#t3 = 79
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
 	fin_if_deplace_pion_4 :
-	or a0,zero,t5
+	or a0,zero,t6
 	
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
@@ -1281,7 +1281,7 @@ fct_saut_pion :
 	ecall
 
 	la t2, var_tour_j
-	lw t5,0(t2)			#t2 prend var_tour_j
+	lw t5,0(t2)			#t5 prend var_tour_j
 	
 	ori a7,zero,1   
 	or a0,zero,t5
@@ -1322,11 +1322,11 @@ fct_saut_pion :
 	
 	ori a7,zero,5   		#Read integer destination
 	ecall	
-	or t5,zero,a0
+	or t6,zero,a0
 	
 	if_saut_pion_3 :
 		ori t3,zero,24
-		mul t3,t5,t3		#t3 = destination*24
+		mul t3,t6,t3		#t3 = destination*24
 		add t0,t4,t3		#t0 = &p[destination]
 		lw t2,0(t0)
 		bne t2,zero,success_saut_pion_3
@@ -1354,7 +1354,7 @@ fct_saut_pion :
 	sw t3,0(t1)			#var_tab_plateau[depart].symoble = 35 
 	
 	ori t4,zero,24
-	mul t1,t4,t5			#t1 = 24*destination
+	mul t1,t4,t6			#t1 = 24*destination
 	la t4, var_tab_plateau		#t4 = &var_tab_plateau
 	add t1, t4, t1			#t1 = &var_tab_plateau[destination].valeur
 	sw t2,0(t1)			#var_tab_plateau[destination].valeur = var_tour_j
@@ -1364,7 +1364,7 @@ fct_saut_pion :
 		ori t4,zero,1
 		bne t2,t4,else_saut_pion_4	#If tour_j = 1 :
 		ori t4,zero,24
-		mul t1,t4,t5			#t1 = 24*destination
+		mul t1,t4,t6			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
 		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
 		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
@@ -1374,14 +1374,14 @@ fct_saut_pion :
 		ori t4,zero,2
 		bne t2,t4,fin_if_saut_pion_4	#If tour_j = 2 :
 		ori t4,zero,24
-		mul t1,t4,t5			#t1 = 24*destination
+		mul t1,t4,t6			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
 		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
 		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,79			#t3 = 79
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
 	fin_if_saut_pion_4 :
-	or a0,zero,t5
+	or a0,zero,t6
 	
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
