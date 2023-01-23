@@ -1,12 +1,4 @@
 	.data
-	
-	# definition des chaines de characteres :
-
-str_fin_de_partie_1_a : .asciz "Le joueur "
-str_fin_de_partie_1_b : .asciz " a perdu !\n"
-str_fin_de_partie_2_a : .asciz "bravo au joueur "
-str_fin_de_partie_2_b : .asciz " !\n"
-
 str_main_1_a:.asciz "Pas de coup possible pour le joueur "
 str_main_1_b:.asciz " !\n"
 str_main_newline:.asciz "\n"
@@ -39,6 +31,19 @@ str_place_pion_1_a:.asciz "Tour du Joueur "
 str_place_pion_1_b:.asciz " :\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
 str_place_pion_2_a:.asciz "Placement invalide, Veuillez recommencer\nEntrez le numéro de la case vide sur laquelle vous voulez placer un pion\n\n"
 
+str_deplace_pion_1_a:.asciz "Tour du Joueur "
+str_deplace_pion_1_b:.asciz " :\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer\n\n"
+str_deplace_pion_2_a:.asciz "Case de départ invalide, Veuillez recommencer\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer\n\n"
+str_deplace_pion_3_a:.asciz "Entrez le numéro de la case VIDE VOISINE sur laquelle vous souhaitez déplacer le pion séléctionné précédement\n\n"
+str_deplace_pion_4_a:.asciz "Déplacement invalide, cette case n'est pas voisine, Veuillez tout recommencer\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer\n\n"
+
+
+str_saut_pion_1_a:.asciz "Tour du Joueur "
+str_saut_pion_1_b:.asciz " :\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer (il ne vous reste que 3 pions donc vous pourrez déplacer le pion sur n'importe quel case vide)\n\n"
+str_saut_pion_2_a:.asciz "Case de départ invalide, Veuillez recommencer\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer (il ne vous reste que 3 pions donc vous pourrez déplacer le pion sur n'importe quel case vide)\n\n"
+str_saut_pion_3_a:.asciz "Entrez le numéro de la case VIDE sur laquelle vous souhaitez déplacer le pion séléctionné précédement (il ne vous reste que 3 pions donc vous pouvez déplacer le pion sur n'importe quel case vide)\n\n"
+str_saut_pion_4_a:.asciz "Déplacement invalide, cette case n'est pas vide, Veuillez tout recommencer\nEntrez le numéro de la case de VOTRE pion que vous souhaitez déplacer (il ne vous reste que 3 pions donc vous pourrez déplacer le pion sur n'importe quel case vide)\n\n"
+
 	#Definition des variables globales :
 
 	#Nombre de pièces sur le terrain
@@ -57,6 +62,15 @@ var_tour : .word 0
 	#tableau des cases (24 t_case ; taille d'une t_case = 1 int + 1 char + 4 int = 32 bits + 8 bits (32 bits quand alignés) + 32*4 bits => 6*32bits = 24 octets
 var_tab_plateau : .space 576	#24 t_cases * 24 octets
 
+
+	# definition des chaines de characteres :
+	
+	
+	#strings utilisées dans la fonction fin_de_partie
+str_fin_de_partie_1_a : .asciz "Le joueur "
+str_fin_de_partie_1_b : .asciz " a perdu !\n"
+str_fin_de_partie_2_a : .asciz "bravo au joueur "
+str_fin_de_partie_2_b : .asciz " !\n"
 
 
 	.text
@@ -88,8 +102,8 @@ while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu 
 		#//placement du pion par l'utilisateur
 		#appel fonction fct_place_pion	(argument sont deja des var globales)
 		jal fct_place_pion
-		ori a0, zero, 5				#TEMPORAIREMENT pour skip fct_place_pion
-				
+		or a0, zero, a2				#fct_place_pion stocke input dans a2
+
 		#appel fonction fct_test_moulin	(argument deja dans a0)
 		jal fct_test_moulin
 		or t0, zero, a0		#t0 = retour de la fonction test_moulin() ci dessus
@@ -1045,56 +1059,62 @@ fct_place_pion :
 	ori a7,zero,4   		#Print string
 	ecall
 
-if_place_pion_1:
-	ori a7,zero,4   		#Read integer
-	ori a2,a0,0			#a2 = a0 (le return)
-	ecall
+	if_place_pion_1:
+		ori a7,zero,5   		#Read integer input
+		ecall
+		ori a2,a0,0			#a2 = a0 (le return)
 
-	blt a0,zero,suite_if_place_pion_1  #input<0
-	ori t2,zero,23
-	blt t2,a0,suite_if_place_pion_1 #input>23
-
-	la t4, var_tab_plateau		#t4 = &plateau
-	add t1, a0, t4							#J'ai ajouté sa
-	lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
-	bne t3,zero,suite_if_place_pion_1  #p[input].valeur != 0
-
-	la a0, str_place_pion_2_a	#Placement invalide...
-	ori a7,zero,4   		#Print string
-	ecall
-	j if_place_pion_1
-suite_if_place_pion_1:
-
-	add t6, a0, t4							#J'ai ajouté sa
-	sw t5, 0(t6)			#p[input].valeur = tour_j	#Et modifié sa pour que sa compile, non testé
+		ori t2,zero,0
+		blt a2,t2,else_place_pion_1 #Jump if input<0 :
+		ori t2,zero,23
+		blt t2,a2,else_place_pion_1 #Jump if 23<input :
 	
-	ori t2,zero,1
-	bne t5,t2,suite_if_place_pion_2  #If tour_j = 1 :
+		la t4, var_tab_plateau		#t4 = &plateau
+		ori t3, zero, 24
+		mul t1,a2,t3			#input*24
+		add t1,t1,t4
+		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
+		bne t3,zero,else_place_pion_1#Jump if p[input].valeur == 0
 
-	la t4, var_J1_nbr_de_pions	#t4 = &J1_nbr_de_pions
-	lw t1,0(t4)			#t1 = J1_nbr_de_pions
-	addi t3,t1,1			#t3 = t1 + 1
-	sw t3,0(t4)			#J1_nbr_de_pions = t3
+		sw t5, 0(t1)			#p[input].valeur = tour_j	#Et modifié sa pour que sa compile, non testé
+	
+		j fin_if_place_pion_1
+		else_place_pion_1:
+			la a0, str_place_pion_2_a	#Placement invalide...
+			ori a7,zero,4   		#Print string
+			ecall
+			j if_place_pion_1
+	fin_if_place_pion_1 :
+	
 
-	la t4, var_tab_plateau		#t4 = &var_tab_plateau
-	addi t2, a0, 4			#t2 = input + 4 
-	ori t1,zero,88			#t1 = 88
-	sw t3,0(t4)			#var_tab_plateau[input].symbole = t1
-suite_if_place_pion_2:
+	if_place_pion_2 :
+		ori t2,zero,1
+		bne t5,t2,fin_if_place_pion_2   #If tour_j = 1 :
 
-	ori t2,zero,2
-	bne t5,t2,suite_if_place_pion_3
+		la t4, var_J1_nbr_de_pions	#t4 = &J1_nbr_de_pions
+		lw t2,0(t4)			#t2 = J1_nbr_de_pions
+		addi t3,t2,1			#t3 = t2 + 1
+		sw t3,0(t4)			#J1_nbr_de_pions = t3
 
-	la t4, var_J2_nbr_de_pions	#t4 = &J2_nbr_de_pions
-	lw t1,0(t4)			#t1 = J2_nbr_de_pions
-	addi t3,t1,1			#t3 = t1 + 1
-	sw t3,0(t4)			#J2_nbr_de_pions = t3
+		addi t4, t1, 4			#t4 = var_tab_plateau[input].valeur + 4 
+		ori t3,zero,88			#t1 = 88
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 88
+	fin_if_place_pion_2:
 
-	la t4, var_tab_plateau		#t4 = &var_tab_plateau
-	addi t2, a0, 4			#t2 = input + 4 
-	ori t1,zero,79			#t1 = 79
-	sw t3,0(t4)			#var_tab_plateau[input].symbole = t1
-suite_if_place_pion_3:
+	if_place_pion_3 :
+		ori t2,zero,2
+		bne t5,t2,fin_if_place_pion_3	#If tour_j = 2 :
+
+		la t4, var_J2_nbr_de_pions	#t4 = &J2_nbr_de_pions
+		lw t2,0(t4)			#t2 = J2_nbr_de_pions
+		addi t3,t2,1			#t3 = t2 + 1
+		sw t3,0(t4)			#J2_nbr_de_pions = t3
+
+		la t4, var_tab_plateau		#t4 = &var_tab_plateau
+		addi t4, t1, 4			#t4 = var_tab_plateau[input].valeur + 4 
+		ori t3,zero,79			#t1 = 79
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
+	fin_if_place_pion_3:
 
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
@@ -1106,8 +1126,140 @@ suite_if_place_pion_3:
 #demande à l'utilisateur le pion à déplacer et la case de destination, puis le déplace si le déplacement est valable:
 #retourne l'indice de la case de destination
 fct_deplace_pion :
-	#TO DO : écrire la fonction
+
 	ori a0, zero, 1					#renvoie 1 pour le moment
+	addi sp, sp, -8	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	addi fp, sp, 8		#PRO
+	
+	la a0, str_deplace_pion_1_a	#Tour du Joueur :
+	ori a7,zero,4   		#Print string
+	ecall
+
+	la t2, var_tour_j
+	lw t5,0(t2)			#t2 prend var_tour_j
+	
+	ori a7,zero,1   
+	or a0,zero,t5
+	ecall				#Print tour_j
+
+	la a0, str_deplace_pion_1_b	# :\nEntrez le numéro de la case de VOTRE...
+	ori a7,zero,4   		#Print string
+	ecall
+
+	if_deplace_pion_1:
+		ori a7,zero,5   		#Read integer depart
+		ecall
+		ori s3,a0,0			#
+
+		ori t2,zero,0
+		blt a2,t2,else_deplace_pion_1 #Jump if input<0 :
+		ori t2,zero,23
+		blt t2,a2,else_deplace_pion_1 #Jump if 23<input :
+	
+		la t4, var_tab_plateau		#t4 = &plateau
+		ori t3, zero, 24
+		mul t1,a2,t3
+		add t1,t1,t4
+		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
+		bne t3,zero,else_deplace_pion_1 #Jump if p[input].valeur == 0
+	
+		j fin_if_deplace_pion_1
+		else_deplace_pion_1:
+			la a0, str_deplace_pion_2_a	#Case de départ invalide ....
+			ori a7,zero,4   		#Print string
+			ecall
+			j if_deplace_pion_1
+	fin_if_deplace_pion_1 :
+	
+	la a0, str_deplace_pion_2_a	#Entrez le numéro de la case VIDE VOISINE...
+	ori a7,zero,4   		#Print string
+	ecall
+	
+	ori a7,zero,5   		#Read integer destination
+	or t5,zero,a0
+	ecall	
+	
+	if_deplace_pion_2 :
+		ori t3,zero,24
+		mul t3,s3,t3		#t3 = depart*24
+		add t0,t4,t3		#t0 = &p[depart]
+		lw t2, 8(t0)		#t2 = p[depart].vn
+		beq t2,t5,success_deplace_pion_2 #p[depart].vn != destination
+		lw t2, 12(t0)		#t2 = p[depart].ve
+		beq t2,t5,success_deplace_pion_2 #p[depart].ve != destination
+		lw t2, 16(t0)		#t2 = p[depart].vs
+		beq t2,t5,success_deplace_pion_2 #p[depart].vs != destination
+		lw t2, 20(t0)		#t2 = p[depart].vo
+		beq t2,t5,success_deplace_pion_2 #p[depart].vo != destination
+		
+		j fin_if_deplace_pion_2
+	
+	success_deplace_pion_2 :
+		la a0, str_deplace_pion_3_a	#Déplacement invalide, cette case...
+		ori a7,zero,4   		#Print string
+		ecall
+		
+		j if_deplace_pion_1
+	fin_if_deplace_pion_2 :
+	
+	if_deplace_pion_3 :
+		ori t3,zero,24
+		mul t3,t5,t3		#t3 = destination*24
+		add t0,t4,t3		#t0 = &p[destination]
+		lw t2,0(t0)
+		beq t2,zero,success_deplace_pion_3
+		j fin_if_deplace_pion_3
+	success_deplace_pion_3 :
+		la a0, str_deplace_pion_4_a	#Déplacement invalide, cette case...
+		ori a7,zero,4   		#Print string
+		ecall
+		
+		j if_deplace_pion_1
+	fin_if_deplace_pion_3 :
+
+	la t2, var_tour_j
+	lw t2,0(t2)			#t2 prend var_tour_j
+	
+	ori t4,zero,24
+	mul t1,t4,s3			#t1 = 24*depart
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	add t1, t4, t1			#t1 = &var_tab_plateau[depart].valeur
+	ori t3,zero,0			#t3 = 0
+	sw t3,0(t1)			#var_tab_plateau[depart].valeur = 0
+	
+	addi t1, t1, 4			#t1 = var_tab_plateau[depart].symbole
+	ori t3,zero,35			#t3 = 35
+	sw t3,0(t1)			#var_tab_plateau[depart].symoble = 35 
+	
+	ori t4,zero,24
+	mul t1,t4,t5			#t1 = 24*destination
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	add t1, t4, t1			#t1 = &var_tab_plateau[destination].valeur
+	sw t2,0(t1)			#var_tab_plateau[destination].valeur = var_tour_j
+
+	
+	if_deplace_pion_4 :
+		ori t4,zero,1
+		bne t2,t4,else_deplace_pion_4	#If tour_j = 1 :
+		ori t4,zero,24
+		mul t1,t4,t5			#t1 = 24*destination
+		la t4, var_tab_plateau		#t4 = &var_tab_plateau
+		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		ori t3,zero,88			#t3 = 88
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 88
+	else_deplace_pion_4 :	
+		ori t4,zero,2
+		bne t2,t4,fin_if_deplace_pion_4	#If tour_j = 2 :
+		ori t4,zero,24
+		mul t1,t4,t5			#t1 = 24*destination
+		la t4, var_tab_plateau		#t4 = &var_tab_plateau
+		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		ori t3,zero,79			#t3 = 79
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
+	fin_if_deplace_pion_4 :
+	or a0,zero,t5
 	jr ra			#EPI
 	#FIN
 
@@ -1116,15 +1268,123 @@ fct_deplace_pion :
 fct_saut_pion :
 	#TO DO : écrire la fonction
 	ori a0, zero, 1					#renvoie 1 pour le moment
+	
+	addi sp, sp, -8	#PRO
+	sw ra, 0(sp)		#PRO
+	sw fp, 4(sp)		#PRO
+	addi fp, sp, 8		#PRO
+	
+	la a0, str_saut_pion_1_a	#Tour du Joueur :
+	ori a7,zero,4   		#Print string
+	ecall
+
+	la t2, var_tour_j
+	lw t5,0(t2)			#t2 prend var_tour_j
+	
+	ori a7,zero,1   
+	or a0,zero,t5
+	ecall				#Print tour_j
+
+	la a0, str_saut_pion_1_b	# :\nEntrez le numéro de la case de VOTRE...
+	ori a7,zero,4   		#Print string
+	ecall
+
+	if_saut_pion_1:
+		ori a7,zero,5   		#Read integer depart
+		ecall
+		ori s3,a0,0			#
+
+		ori t2,zero,0
+		blt a2,t2,else_saut_pion_1 #Jump if input<0 :
+		ori t2,zero,23
+		blt t2,a2,else_saut_pion_1 #Jump if 23<input :
+	
+		la t4, var_tab_plateau		#t4 = &plateau
+		ori t3, zero, 24
+		mul t1,a2,t3
+		add t1,t1,t4
+		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
+		bne t3,zero,else_saut_pion_1 #Jump if p[input].valeur == 0
+	
+		j fin_if_deplace_pion_1
+		else_saut_pion_1:
+			la a0, str_saut_pion_2_a	#Case de départ invalide ....
+			ori a7,zero,4   		#Print string
+			ecall
+			j if_saut_pion_1
+	fin_if_saut_pion_1 :
+	
+	la a0, str_saut_pion_3_a	#Entrez le numéro de la case VIDE VOISINE...
+	ori a7,zero,4   		#Print string
+	ecall
+	
+	ori a7,zero,5   		#Read integer destination
+	or t5,zero,a0
+	ecall	
+	
+	if_saut_pion_3 :
+		ori t3,zero,24
+		mul t3,t5,t3		#t3 = destination*24
+		add t0,t4,t3		#t0 = &p[destination]
+		lw t2,0(t0)		#t2 = p[destination].valeur
+		beq t2,zero,success_saut_pion_3
+		j fin_if_deplace_pion_3
+	success_saut_pion_3 :
+		la a0, str_saut_pion_4_a	#Déplacement invalide, cette case...
+		ori a7,zero,4   		#Print string
+		ecall
+		
+		j if_saut_pion_1
+	fin_if_saut_pion_3 :
+
+	la t2, var_tour_j
+	lw t2,0(t2)			#t2 prend var_tour_j
+	
+	ori t4,zero,24
+	mul t1,t4,s3			#t1 = 24*depart
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	add t1, t4, t1			#t1 = &var_tab_plateau[depart].valeur
+	ori t3,zero,0			#t3 = 0
+	sw t3,0(t1)			#var_tab_plateau[depart].valeur = 0
+	
+	addi t1, t1, 4			#t1 = var_tab_plateau[depart].symbole
+	ori t3,zero,35			#t3 = 35
+	sw t3,0(t1)			#var_tab_plateau[depart].symoble = 35 
+	
+	ori t4,zero,24
+	mul t1,t4,t5			#t1 = 24*destination
+	la t4, var_tab_plateau		#t4 = &var_tab_plateau
+	add t1, t4, t1			#t1 = &var_tab_plateau[destination].valeur
+	sw t2,0(t1)			#var_tab_plateau[destination].valeur = var_tour_j
+
+	
+	if_saut_pion_4 :
+		ori t4,zero,1
+		bne t2,t4,else_saut_pion_4	#If tour_j = 1 :
+		ori t4,zero,24
+		mul t1,t4,t5			#t1 = 24*destination
+		la t4, var_tab_plateau		#t4 = &var_tab_plateau
+		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		ori t3,zero,88			#t3 = 88
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 88
+	else_saut_pion_4 :	
+		ori t4,zero,2
+		bne t2,t4,fin_if_saut_pion_4	#If tour_j = 2 :
+		ori t4,zero,24
+		mul t1,t4,t5			#t1 = 24*destination
+		la t4, var_tab_plateau		#t4 = &var_tab_plateau
+		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		ori t3,zero,79			#t3 = 79
+		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
+	fin_if_saut_pion_4 :
+	or a0,zero,t5
 	jr ra			#EPI
 	#FIN
 	
+
 #teste si un coup est possible pour le joueur actif (renvoie 1 si oui, 0 sinon)
 fct_test_coup_possible :
-	#TO DO : écrire la fonction
-	ori a0, zero, 1		#TEMPORAIREMENT			#renvoie 1 pour le moment
-	jr ra			#TEMPORAIREMENT
-	
+	#TO DO : écrire la fonction	
 	addi sp, sp, -28	#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
@@ -1154,19 +1414,60 @@ fct_test_coup_possible :
 			bne t1, s5, suite_if_fct_test_coup_possible_1
 			#code if:
 			#//test si la case à au moins un voisin vide
-			if_fct_test_coup_possible_2 :	#if ( (p[i].vn != -1 && p[p[i].vn].valeur == 0) || (p[i].ve != -1 && p[p[i].ve].valeur == 0) || (p[i].vs != -1 && p[p[i].vs].valeur == 0) || (p[i].vo != -1 && p[p[i].vo].valeur == 0) )
+			if_fct_test_coup_possible_2_a :	#if ( (p[i].vn != -1 && p[p[i].vn].valeur == 0) || (p[i].ve != -1 && p[p[i].ve].valeur == 0) || (p[i].vs != -1 && p[p[i].vs].valeur == 0) || (p[i].vo != -1 && p[p[i].vo].valeur == 0) )
 				lw t2, 8(t0)	#t2 = p[i/24].vn
-
-			#NON FINI
-
-
-
+				ori t4,zero,-1  
+				beq t2,t4,if_fct_test_coup_possible_2_b #p[i].vn != -1
+				ori t4,zero,24
+				mul t3,t2,t4	
+				add t3,t3,t0	#t3 = &p[p[i].vn]]
+				lw t3, 0(t3)	#t3 = p[p[i].vn].valeur
+				ori t4,zero,0
+				bne t3,t4,if_fct_test_coup_possible_2_b #p[p[i].vn].valeur == 0
+				j success_fct_test_coup_possible_1
+			if_fct_test_coup_possible_2_b:
+				lw t2, 12(t0)	#t2 = p[i/24].ve
+				ori t4,zero,-1  
+				beq t2,t4,if_fct_test_coup_possible_2_c #p[i].ve != -1
+				ori t4,zero,24
+				mul t3,t2,t4	
+				add t3,t3,t0	#t3 = &p[p[i].ve]]
+				lw t3, 0(t3)	#t3 = p[p[i].ve].valeur
+				ori t4,zero,0
+				bne t3,t4,if_fct_test_coup_possible_2_c #p[p[i].ve].valeur == 0
+				j success_fct_test_coup_possible_1
+			if_fct_test_coup_possible_2_c:
+				lw t2, 16(t0)	#t2 = p[i/24].vs
+				ori t4,zero,-1  
+				beq t2,t4,if_fct_test_coup_possible_2_d #p[i].vs != -1
+				ori t4,zero,24
+				mul t3,t2,t4	
+				add t3,t3,t0	#t3 = &p[p[i].vs]]
+				lw t3, 0(t3)	#t3 = p[p[i].vs].valeur
+				ori t4,zero,0
+				bne t3,t4,if_fct_test_coup_possible_2_d #p[p[i].vs].valeur == 0
+				j success_fct_test_coup_possible_1
+			if_fct_test_coup_possible_2_d:
+				lw t2, 16(t0)	#t2 = p[i/24].vo
+				ori t4,zero,-1  
+				beq t2,t4,suite_if_fct_test_coup_possible_1 #p[i].vo != -1
+				ori t4,zero,24
+				mul t3,t2,t4
+				add t3,t3,t0	#t3 = &p[p[i].vo]]
+				lw t3, 0(t3)	#t3 = p[p[i].vo].valeur
+				ori t4,zero,0
+				bne t3,t4,suite_if_fct_test_coup_possible_1 #p[p[i].vo].valeur == 0
+		success_fct_test_coup_possible_1:
+			ori a0,zero,1         #Return 1
+			j fin_for_fct_test_coup_possible
 		suite_if_fct_test_coup_possible_1 :
 		#fin code for:
 		addi s3, s3, 24
 		j for_fct_test_coup_possible
 	suite_for_fct_test_coup_possible:
-
+	
+	ori a0,zero, 0         #Return 0
+	fin_for_fct_test_coup_possible :
 	lw ra, 0(sp)		#EPI
 	lw fp, 4(sp)		#EPI
 	lw s1, 8(sp)		#EPI
