@@ -1135,7 +1135,7 @@ fct_deplace_pion :
 	ecall
 
 	la t2, var_tour_j
-	lw t5,0(t2)			#t2 prend var_tour_j
+	lw t5,0(t2)			#t5 prend var_tour_j
 	
 	ori a7,zero,1   
 	or a0,zero,t5
@@ -1151,19 +1151,19 @@ fct_deplace_pion :
 		ori s3,a0,0			#
 
 		ori t2,zero,0
-		blt s3,t2,else_deplace_pion_1 #Jump if input<0 :
+		blt s3,t2,code_if_deplace_pion_1 #Jump if input<0 :
 		ori t2,zero,23
-		blt t2,s3,else_deplace_pion_1 #Jump if 23<input :
+		blt t2,s3,code_if_deplace_pion_1 #Jump if 23<input :
 	
 		la t4, var_tab_plateau		#t4 = &plateau
 		ori t3, zero, 24
 		mul t1,s3,t3
 		add t1,t1,t4
 		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
-		beq t3,zero,else_deplace_pion_1 #Jump if p[input].valeur == 0
+		bne t3,t5,code_if_deplace_pion_1 #Jump if p[input].valeur != var_tour_j
 	
 		j fin_if_deplace_pion_1
-		else_deplace_pion_1:
+		code_if_deplace_pion_1:
 			la a0, str_deplace_pion_2_a	#Case de départ invalide ....
 			ori a7,zero,4   		#Print string
 			ecall
@@ -1297,19 +1297,19 @@ fct_saut_pion :
 		ori s3,a0,0			#
 
 		ori t2,zero,0
-		blt s3,t2,else_saut_pion_1 #Jump if input<0 :
+		blt s3,t2,code_if_saut_pion_1 #Jump if input<0 :
 		ori t2,zero,23
-		blt t2,s3,else_saut_pion_1 #Jump if 23<input :
+		blt t2,s3,code_if_saut_pion_1 #Jump if 23<input :
 	
 		la t4, var_tab_plateau		#t4 = &plateau
 		ori t3, zero, 24
 		mul t1,s3,t3
 		add t1,t1,t4
 		lw t3,0(t1)			#t3 = p[input].valeur
-		beq t3,zero,else_saut_pion_1 #Jump if p[input].valeur == 0
-	
+		bne t3,t5,code_if_saut_pion_1 #Jump if p[input].valeur != var_tour_j
+
 		j fin_if_saut_pion_1
-		else_saut_pion_1:
+		code_if_saut_pion_1:
 			la a0, str_saut_pion_2_a	#Case de départ invalide ....
 			ori a7,zero,4   		#Print string
 			ecall
