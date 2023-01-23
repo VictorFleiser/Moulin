@@ -19,8 +19,8 @@ typedef struct
 	char symbole;
 /* symbole de la case : 
 # = vide	(ascii = 35)
-O = case Joueur 1	(ascii = 79)
-X = case Joueur 2	(ascii = 88)
+X = case Joueur 1	(ascii = 88)
+O = case Joueur 2	(ascii = 79)
 */
 	int vn;		//voisin nord
 	int ve;		//voisin est
