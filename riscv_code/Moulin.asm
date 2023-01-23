@@ -1124,10 +1124,11 @@ fct_place_pion :
 #retourne l'indice de la case de destination
 fct_deplace_pion :
 
-	addi sp, sp, -8	#PRO
+	addi sp, sp, -12	#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
-	addi fp, sp, 8		#PRO
+	sw s3, 8(sp)		#PRO
+	addi fp, sp, 12		#PRO
 	
 	la a0, str_deplace_pion_1_a	#Tour du Joueur :
 	ori a7,zero,4   		#Print string
@@ -1258,19 +1259,22 @@ fct_deplace_pion :
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
 	fin_if_deplace_pion_4 :
 	or a0,zero,t5
+	
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw s3, 8(sp)		#EPI
+	addi sp, sp, 12		#EPI
 	jr ra			#EPI
 	#FIN
 
 #demande à l'utilisateur le pion à déplacer et la case de destination, puis le déplace si le déplacement est valable:
 #retourne l'indice de la case de destination
 fct_saut_pion :
-	#TO DO : écrire la fonction
-	ori a0, zero, 1					#renvoie 1 pour le moment
-	
-	addi sp, sp, -8	#PRO
+	addi sp, sp, -12	#PRO
 	sw ra, 0(sp)		#PRO
 	sw fp, 4(sp)		#PRO
-	addi fp, sp, 8		#PRO
+	sw s3, 8(sp)		#PRO
+	addi fp, sp, 12		#PRO
 	
 	la a0, str_saut_pion_1_a	#Tour du Joueur :
 	ori a7,zero,4   		#Print string
@@ -1293,18 +1297,18 @@ fct_saut_pion :
 		ori s3,a0,0			#
 
 		ori t2,zero,0
-		blt a2,t2,else_saut_pion_1 #Jump if input<0 :
+		blt s3,t2,else_saut_pion_1 #Jump if input<0 :
 		ori t2,zero,23
-		blt t2,a2,else_saut_pion_1 #Jump if 23<input :
+		blt t2,s3,else_saut_pion_1 #Jump if 23<input :
 	
 		la t4, var_tab_plateau		#t4 = &plateau
 		ori t3, zero, 24
-		mul t1,a2,t3
+		mul t1,s3,t3
 		add t1,t1,t4
-		lw t3,0(t1)			#t3 = p[input].valeur		#Et modifié sa pour que sa compile, non testé
-		bne t3,zero,else_saut_pion_1 #Jump if p[input].valeur == 0
+		lw t3,0(t1)			#t3 = p[input].valeur
+		beq t3,zero,else_saut_pion_1 #Jump if p[input].valeur == 0
 	
-		j fin_if_deplace_pion_1
+		j fin_if_saut_pion_1
 		else_saut_pion_1:
 			la a0, str_saut_pion_2_a	#Case de départ invalide ....
 			ori a7,zero,4   		#Print string
@@ -1317,16 +1321,16 @@ fct_saut_pion :
 	ecall
 	
 	ori a7,zero,5   		#Read integer destination
-	or t5,zero,a0
 	ecall	
+	or t5,zero,a0
 	
 	if_saut_pion_3 :
 		ori t3,zero,24
 		mul t3,t5,t3		#t3 = destination*24
 		add t0,t4,t3		#t0 = &p[destination]
-		lw t2,0(t0)		#t2 = p[destination].valeur
-		beq t2,zero,success_saut_pion_3
-		j fin_if_deplace_pion_3
+		lw t2,0(t0)
+		bne t2,zero,success_saut_pion_3
+		j fin_if_saut_pion_3
 	success_saut_pion_3 :
 		la a0, str_saut_pion_4_a	#Déplacement invalide, cette case...
 		ori a7,zero,4   		#Print string
@@ -1362,7 +1366,8 @@ fct_saut_pion :
 		ori t4,zero,24
 		mul t1,t4,t5			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
-		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
+		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,88			#t3 = 88
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 88
 	else_saut_pion_4 :	
@@ -1371,14 +1376,19 @@ fct_saut_pion :
 		ori t4,zero,24
 		mul t1,t4,t5			#t1 = 24*destination
 		la t4, var_tab_plateau		#t4 = &var_tab_plateau
-		addi t4, t1, 4			#t4 = var_tab_plateau[destination].valeur + 4 
+		add t4, t4, t1			#t4 = &var_tab_plateau[destination]
+		addi t4, t4, 4			#t4 = &var_tab_plateau[destination].symbole
 		ori t3,zero,79			#t3 = 79
 		sw t3,0(t4)			#var_tab_plateau[input].symbole = 79
 	fin_if_saut_pion_4 :
 	or a0,zero,t5
-	jr ra			#EPI
-	#FIN
 	
+	lw ra, 0(sp)		#EPI
+	lw fp, 4(sp)		#EPI
+	lw s3, 8(sp)		#EPI
+	addi sp, sp, 12		#EPI
+	jr ra			#EPI
+	#FIN	
 
 #teste si un coup est possible pour le joueur actif (renvoie 1 si oui, 0 sinon)
 fct_test_coup_possible :
