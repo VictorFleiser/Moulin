@@ -143,7 +143,7 @@ while_fct_main :		#while (phase)		/boucle infinie du jeu jusqu'à ce que le jeu 
 			beq t4, t3, success_if_fct_main_4   # if (J1_nbr_de_pions == 3), jump to success_if_fct_main_4
 		test_if_fct_main_4:
 		bne t0, t2, else_fct_main_4		#if (tour_j != 2), jump to else_fct_main_4
-			beq t4, t3, success_if_fct_main_4   # if (J1_nbr_de_pions == 3), jump to success_if_fct_main_4
+			beq t5, t3, success_if_fct_main_4   # if (J1_nbr_de_pions == 3), jump to success_if_fct_main_4
 		j else_fct_main_4
 
 		success_if_fct_main_4 :
